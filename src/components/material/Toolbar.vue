@@ -40,6 +40,7 @@ export default {
 <style scoped>
   .toolbar {
     position: fixed;
+    z-index: 10;
   }
   span {
     text-transform: none;

@@ -6,7 +6,7 @@
       <p class="md-headline"> {{ text }} </p>
     </div>
     <div class="md-layout-item right">
-      <img src="@/assets/Turan.svg" />
+      <img src="@/assets/Petersen.svg" title="Petersen graph coloring" />
     </div>
   </div>
 </template>
