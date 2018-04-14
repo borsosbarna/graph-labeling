@@ -1,9 +1,9 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
 /* Require Controller Modules */
-var SAController = require('./controllers/SAController');
-var GAController = require('./controllers/GAController');
+const SAController = require('./controllers/SAController');
+const GAController = require('./controllers/GAController');
 
 /* Define API endpoints */
 router.post('/SA', SAController);
