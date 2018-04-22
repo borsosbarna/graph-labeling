@@ -40,7 +40,7 @@ struct parameters
     char* file;                 // input file path
     int max_label;              // max. number of labels to use
 
-    int temperature;            // starting system temperature
+    double temperature;         // starting system temperature
     double cooling_factor;      // system cooling coefficient (0 < x < 1)
     int max_iterations;         // max. number of iterations
     int max_time;               // max. running time (seconds)
@@ -165,7 +165,7 @@ void set_parameters(char** argv, parameters& parameters)
     strcpy(parameters.file, argv[3]);
 
     parameters.max_label = atoi(argv[4]);
-    parameters.temperature = atoi(argv[5]);
+    parameters.temperature = atof(argv[5]);
     parameters.cooling_factor = atof(argv[6]);
     parameters.max_iterations = atoi(argv[7]);
     parameters.max_time = atoi(argv[8]);
