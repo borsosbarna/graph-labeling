@@ -38,7 +38,7 @@ struct parameters
     int h;                      // min. difference between adjacent vertexes
     int k;                      // min. difference between vertexes at distance of 2 edges
     char* file;                 // input file path
-    int max_label;              // max. number of labels to use
+    int max_label;              // max. value of a label
 
     double temperature;         // starting system temperature
     double cooling_factor;      // system cooling coefficient (0 < x < 1)
