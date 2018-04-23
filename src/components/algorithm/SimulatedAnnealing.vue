@@ -55,7 +55,7 @@
         </md-field>
 
         <md-field>
-          <label>Max. Time</label>
+          <label>Max. Time (seconds)</label>
           <md-input v-model="parameters.maxTime" type="number" :disabled="isRunning" />
         </md-field>
 
@@ -84,23 +84,34 @@
         <div v-if="!isRunning">
           <div class="md-headline">Results</div> <br />
 
-          <span class="bold">Time Elapsed </span>
-            {{ result.time }} <br/><br/>
-          <span class="bold">Iterations Done </span>
-            {{ result.iterations }} <br/><br/>
-          <span class="bold">Final Temperature </span>
-            {{ result.temperature }} <br/><br/><br />
+          <span class="bold">Time Elapsed</span>
+          <span v-if="result.time">{{ result.time }} s</span>
+          <br/><br/>
+          <span class="bold">Iterations Done</span>
+          <span v-if="result.iterations">
+            {{ result.iterations }}
+            ({{Math.round((result.iterations / parameters.maxIterations) * 100)}}%)
+          </span>
+          <br/><br/>
+          <span class="bold">Final Temperature</span>
+          <span>{{ result.temperature }}</span>
+          <br/><br/><br/>
 
-          <span class="bold">Solution </span>
-            {{ result.solution }} <br/><br/>
-          <span class="bold">Is Solution Correct? </span>
-            {{ firstTime ? '' : (result.isCorrect ? 'Yes' : 'No') }} <br/><br/>
-          <span class="bold">Number of Conflicting Vertexes </span>
-            {{ result.conflictingVertexes }} <br/><br/>
-          <span class="bold">Chromatic Number </span>
-           {{ result.chromaticNumber }} <br/><br/>
-          <span class="bold">Fitness </span>
-           {{ result.fitness }} <br/><br/><br/>
+          <span class="bold">Solution</span>
+          <span>{{ result.solution }}</span>
+          <br/><br/>
+          <span class="bold">Is Solution Correct?</span>
+          <span v-bind:class="getResultColorClass()">{{ getResultCorrectness() }}</span>
+          <br/><br/>
+          <span class="bold">Number of Conflicting Vertexes</span>
+          <span>{{ result.conflictingVertexes }}</span>
+          <br/><br/>
+          <span class="bold">Chromatic Number</span>
+          <span v-if="result.chromaticNumber">&le; {{ result.chromaticNumber }}</span>
+          <br/><br/>
+          <span class="bold">Fitness</span>
+          <span>{{ result.fitness }}</span>
+          <br/><br/><br/>
 
           <span class="error"> {{ result.errorMsg }} </span> <br/>
         </div>
@@ -223,10 +234,10 @@ export default {
         // eslint-disable-next-line
         .then((res) => { return res.json(); })
         .then((data) => {
-          this.result = data;
-
           if (!data.errorMsg) {
+            this.result = data;
             this.firstTime = false;
+
             this.drawGraph();
           }
 
@@ -493,6 +504,28 @@ export default {
 
       return null;
     },
+
+    getResultCorrectness() {
+      switch (this.result.isCorrect) {
+        case true:
+          return 'Yes';
+        case false:
+          return 'No';
+        default:
+          return '';
+      }
+    },
+
+    getResultColorClass() {
+      switch (this.result.isCorrect) {
+        case true:
+          return 'bold green';
+        case false:
+          return 'bold red';
+        default:
+          return '';
+      }
+    },
   },
 };
 </script>
@@ -532,6 +565,7 @@ export default {
   }
   .error {
     color: #F44336;
+    font-weight: bold;
   }
   #chart {
     width: 100%;
@@ -547,5 +581,11 @@ export default {
     height: 100%;
     top: 0;
     left: 0;
+  }
+  .red {
+    color: #F44336;
+  }
+  .green {
+    color: #8BC34A;
   }
 </style>
