@@ -143,7 +143,6 @@ export default {
       },
 
       isRunning: false,
-      firstTime: true,
       MAX_RUNNING_TIME: 60,
 
       parameters: {
@@ -236,7 +235,6 @@ export default {
         .then((data) => {
           if (!data.errorMsg) {
             this.result = data;
-            this.firstTime = false;
 
             this.drawGraph();
           }
