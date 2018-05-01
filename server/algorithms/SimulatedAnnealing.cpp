@@ -81,7 +81,7 @@ struct state
 void set_parameters(char**, parameters&);
 void initialize(parameters&, data&);
 void neighbors(data&);
-void second_neighbours(data&);
+void second_neighbors(data&);
 
 void initialize(parameters&, data&, state&);
 bool is_correct(parameters&, data&, solution&);
@@ -211,7 +211,7 @@ void initialize(parameters& parameters, data& data)
     file.close();
 
     neighbors(data);
-    second_neighbours(data);
+    second_neighbors(data);
 }
 
 void neighbors(data& data)
@@ -249,7 +249,7 @@ void neighbors(data& data)
     }
 }
 
-void second_neighbours(data& data)
+void second_neighbors(data& data)
 {
     /* allocate memory for every vertex */
     data.second_neighbors = new int*[data.vertex_count];
