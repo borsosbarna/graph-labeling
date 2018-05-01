@@ -4,6 +4,7 @@
     <presentation />
     <simulated-annealing />
     <genetic-algorithm />
+    <bottom />
   </div>
 </template>
 
@@ -12,6 +13,7 @@ import Toolbar from '@/components/material/Toolbar';
 import Presentation from '@/components/material/Presentation';
 import SimulatedAnnealing from '@/components/algorithm/SimulatedAnnealing';
 import GeneticAlgorithm from '@/components/algorithm/GeneticAlgorithm';
+import Bottom from '@/components/material/Bottom';
 
 export default {
   name: 'Home',
@@ -20,6 +22,7 @@ export default {
     Presentation,
     SimulatedAnnealing,
     GeneticAlgorithm,
+    Bottom,
   },
 };
 </script>
