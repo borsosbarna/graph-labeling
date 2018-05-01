@@ -40,7 +40,8 @@ module.exports = (req, res) => {
     (error, stdout, stderr) => {
     /* check for any error */
     if (error || stderr) {
-      res.json({ errorMsg: 'Something went wrong!' });
+      res.json(error);
+      // res.json({ errorMsg: 'Something went wrong!' });
     }
     else {
       const lines = stdout.toString().replace(/\r/g, '').split('\n');

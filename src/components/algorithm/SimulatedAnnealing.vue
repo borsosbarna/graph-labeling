@@ -226,7 +226,7 @@ export default {
         maxTime: parseInt(this.parameters.maxTime, 10),
       };
 
-      fetch('https://graph-labeling.herokuapp.com/api/sa', {
+      fetch('localhost:8080/api/sa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload) })

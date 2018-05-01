@@ -11,8 +11,7 @@
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit test/e2e/specs",
-    "build": "node build/build.js",
-    "postinstall": "npm run build && g++ ./server/algorithms/SimulatedAnnealing.cpp -o ./server/bin/SimulatedAnnealing && g++ ./server/algorithms/GeneticAlgorithm.cpp -o ./server/bin/GeneticAlgorithm"
+    "build": "node build/build.js"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
