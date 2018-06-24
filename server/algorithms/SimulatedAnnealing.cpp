@@ -3,12 +3,12 @@
     INPUT
         argv[1] - h (min. difference between neighbors)
         argv[2] - k (min. difference between second order neighbors)
-        argv[3] - file
+        argv[3] - file path
         argv[4] - max. label value
         argv[5] - initial temperature
         argv[6] - cooling factor
         argv[7] - max. iterations
-        argv[8] - max. running time
+        argv[8] - max. running time (seconds)
 
     OUTPUT
         line 1: time elapsed
@@ -38,7 +38,7 @@ struct parameters
     int h;                      // min. difference between adjacent vertexes
     int k;                      // min. difference between vertexes at distance of 2 edges
     char* file;                 // input file path
-    int max_label;              // max. number of labels to use
+    int max_label;              // max. value of a label
 
     double temperature;         // starting system temperature
     double cooling_factor;      // system cooling coefficient (0 < x < 1)
@@ -81,7 +81,7 @@ struct state
 void set_parameters(char**, parameters&);
 void initialize(parameters&, data&);
 void neighbors(data&);
-void second_neighbours(data&);
+void second_neighbors(data&);
 
 void initialize(parameters&, data&, state&);
 bool is_correct(parameters&, data&, solution&);
@@ -211,7 +211,7 @@ void initialize(parameters& parameters, data& data)
     file.close();
 
     neighbors(data);
-    second_neighbours(data);
+    second_neighbors(data);
 }
 
 void neighbors(data& data)
@@ -249,7 +249,7 @@ void neighbors(data& data)
     }
 }
 
-void second_neighbours(data& data)
+void second_neighbors(data& data)
 {
     /* allocate memory for every vertex */
     data.second_neighbors = new int*[data.vertex_count];

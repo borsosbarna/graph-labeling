@@ -1,9 +1,13 @@
 <template>
   <div class="md-layout">
-    <div class="md-layout-item md-size-66 left">
+    <div class="md-layout-item md-size-75 left">
       <span class="md-display-1"> {{ title }} </span>
       <br />
-      <p class="md-headline"> {{ text }} </p>
+      <p class="md-headline">
+        Assignment of nonnegative integers to every vertex following two simple rules: <br/><br/>
+        1. Adjacent vertexes get labels at least <i>h</i> apart <br/><br/>
+        2. Vertexes with common neighbors get labels at least <i>k</i> apart
+      </p>
     </div>
     <div class="md-layout-item right">
       <img src="@/assets/Petersen.svg" title="Petersen graph coloring" />
@@ -17,8 +21,6 @@ export default {
   data() {
     return {
       title: 'L(h, k) Graph Labeling',
-      text: 'Lorem ipsum dolor sit amet, dolore ceteros facilisi id est, ' +
-       'per et ubique ornatus conclusionemque, ad pri quas commune accusata.',
     };
   },
 };
@@ -47,6 +49,6 @@ export default {
     text-indent: 10%;
   }
   img {
-    width: 50%;
+    width: 75%;
   }
 </style>
