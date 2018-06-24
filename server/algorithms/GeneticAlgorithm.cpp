@@ -15,12 +15,12 @@
     OUTPUT
         line 1: time elapsed
         line 2: generations created
-        line 3: best fitness per generation
-        line 4: solution found
-        line 5: solution correctness
-        line 6: number of conflicting vertexes
-        line 7: chromatic number
-        line 8: fitness
+        line 3: solution found
+        line 4: solution correctness
+        line 5: number of conflicting vertexes
+        line 6: chromatic number
+        line 7: fitness
+        line 8: best fitness per generation (max. 100 sample)
 */
 
 #include <iostream>
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
             }
         }
 
-        if(generation1.generation_number & 2)
+        if(generation1.generation_number % 2)
         {
             print_data(parameters, data, generation2);
         }

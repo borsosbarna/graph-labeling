@@ -3,15 +3,81 @@
 
     <md-tabs md-alignment="centered">
       <md-tab id="tab-general" md-label="Info">
-        <div class="md-headline"> {{ info.general }} </div>
+        <div class="md-headline">
+          Genetic Algorithm <br/><br/>
+          Population based evolutionary algorithm for solution approximation <br/>
+          inspired by biological processes
+        </div>
       </md-tab>
 
       <md-tab id="tab-parameters" md-label="Parameters">
-        <div class="md-headline"> {{ info.parameters }} </div>
+        <div class="md-layout parameters">
+          <div class="md-layout-item md-size-25 right">
+            <i>h</i> <br/>
+            <i>k</i> <br/>
+            max. label value <br/>
+            populations count <br/>
+            population size <br/>
+            mutation chance <br/>
+            elites count <br/>
+            max. generations <br/>
+            max. time
+          </div>
+
+          <div class="md-layout-item centering">
+            - min. difference between labels of adjacent vertexes - <br/>
+            - min. difference between labels of vertexes with common neighbors - <br/>
+            - the highest value of label that can be used - <br/>
+            - number of distinct groups of solutions - <br/>
+            - number of solutions in one group - <br/>
+            - the chance to modify a new solution - <br/>
+            - number of solutions to save for the next iteration - <br/>
+            - maximum number of iterations - <br/>
+            - maximum allowed running time (in seconds) -
+          </div>
+
+          <div class="md-layout-item md-size-25 left">
+            values: { 0, 1, ... } <br/>
+            values: { 0, 1, ... }  <br/>
+            values: { 1, 2, ... } <br/>
+            values: { 1, 2, ... } <br/>
+            values: { 1, 2, ... } <br/>
+            values: [ 0, 1 ] <br/>
+            values: { 0, 1, ... } <br/>
+            values: { 1, 2, ... } <br/>
+            values: { 1, 2, ... }
+          </div>
+        </div>
       </md-tab>
 
-      <md-tab id="tab-input" md-label="Input">
-        <div class="md-headline"> {{ info.input }} </div>
+      <md-tab id="tab-input" md-label="Input File Format">
+        <div class="md-layout parameters">
+          <div class="md-layout-item md-size-50">
+            Template <br/> <br/>
+
+            &lt;vertex_count&gt; &lt;edge_count&gt; &lt;fixed_labels_count&gt; <br/>
+            &lt;vertex1&gt; &lt;vertex2&gt; <br/>
+            ............................... <br/>
+            &lt;vertex1&gt; &lt;label1&gt; <br/>
+            ............................... <br/>
+          </div>
+
+          <div class="md-layout-item left">
+            Example <br/> <br/>
+
+            3 3 1 <br/>
+            1 2 <br/>
+            1 3 <br/>
+            2 3 <br/>
+            1 1 <br/>
+          </div>
+
+          <div class="md-layout-item md-size-25 centering">
+            Result <br/><br/>
+
+            <img src="@/assets/K_3.svg" title="" />
+          </div>
+        </div>
       </md-tab>
     </md-tabs>
 
@@ -78,8 +144,10 @@
       </div>
 
       <div class="md-layout-item md-size-33 padded-vertically">
-        <div id="chart"></div>
-        <div id="graph"></div>
+        <div id="chartGA"></div>
+        <div id="graphGA">
+          <img v-if="!result.solution" src="@/assets/graph_logo.png" title="" />
+        </div>
       </div>
 
       <div class="md-layout-item md-size-33 padded">
@@ -99,8 +167,7 @@
           <br/><br/>
           <span class="bold">Iterations Done</span>
           <span v-if="result.iterations">
-            {{ result.iterations }}
-            ({{Math.round((result.iterations / parameters.maxGenerations) * 100)}}%)
+            {{ result.iterations }} ({{result.iterationsPercentage}}%)
           </span>
           <br/><br/><br/>
 
@@ -113,8 +180,8 @@
           <span class="bold">Number of Conflicting Vertexes</span>
           <span>{{ result.conflictingVertexes }}</span>
           <br/><br/>
-          <span class="bold">Chromatic Number</span>
-          <span v-if="result.chromaticNumber">&le; {{ result.chromaticNumber }}</span>
+          <span class="bold">Max. Label Value</span>
+          <span v-if="result.chromaticNumber"> {{ result.chromaticNumber }}</span>
           <br/><br/>
           <span class="bold">Fitness</span>
           <span>{{ result.fitness }}</span>
@@ -132,23 +199,12 @@ import { GoogleCharts } from 'google-charts';
 
 const svgPanZoom = require('svg-pan-zoom');
 const Viz = require('viz.js');
+const config = require('../../../configfile');
 
 export default {
   name: 'SimulatedAnnealing',
   data() {
     return {
-      info: {
-        general: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-                 'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-                 'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-        parameters: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-                    'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-                    'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-        input: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-               'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-               'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-      },
-
       isRunning: false,
       MAX_RUNNING_TIME: 60,
 
@@ -168,6 +224,7 @@ export default {
       result: {
         time: null,
         iterations: null,
+        iterationsPercentage: null,
         solution: null,
         isCorrect: null,
         conflictingVertexes: null,
@@ -190,17 +247,17 @@ export default {
 
   mounted() {
     // Load the charts library with a callback
-    /* GoogleCharts.load(this.drawChart);
+    GoogleCharts.load(this.drawChart);
 
     window.addEventListener('resize', () => {
       if (this.diagrams.chart) {
         this.diagrams.chart.draw(this.diagrams.chartData, this.diagrams.chartOptions);
       }
-    }); */
+    });
   },
 
   beforeUpdate() {
-    // this.drawChart();
+    this.drawChart();
   },
 
   methods: {
@@ -216,11 +273,11 @@ export default {
     },
 
     start() {
-      /* this.result.errorMsg = this.validateParameters();
+      this.result.errorMsg = this.validateParameters();
 
       if (this.result.errorMsg) {
         return;
-      } */
+      }
 
       this.isRunning = true;
 
@@ -237,7 +294,7 @@ export default {
         maxTime: parseInt(this.parameters.maxTime, 10),
       };
 
-      fetch('https://graph-labeling.herokuapp.com/api/ga', {
+      fetch(`${config.host}/api/ga`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload) })
@@ -246,8 +303,11 @@ export default {
         .then((data) => {
           if (!data.errorMsg) {
             this.result = data;
+            this.result.iterationsPercentage =
+              Math.round((this.result.iterations / this.parameters.maxGenerations) * 100);
 
-            // this.drawGraph();
+            this.drawChart();
+            this.drawGraph();
           }
 
           this.isRunning = false;
@@ -255,17 +315,14 @@ export default {
     },
 
     drawChart() {
-      const list = [['Iteration', 'Temperature']];
+      const list = [['Generation', 'Best Fitness']];
 
-      if (this.parameters.temperature && this.parameters.coolingFactor &&
-          this.parameters.maxIterations &&
-          this.parameters.temperature > 0 &&
-          this.parameters.coolingFactor > 0 && this.parameters.coolingFactor < 1 &&
-          this.parameters.maxIterations > 0) {
+      if (this.result.iterations && this.result.history) {
+        const fitnesses = this.result.history.split(' ');
         let i;
-        for (i = 0; i < this.parameters.maxIterations;
-          i += Math.ceil(this.parameters.maxIterations / 100)) {
-          list.push([i, this.parameters.temperature * (this.parameters.coolingFactor ** i)]);
+        for (i = 0; i < fitnesses.length; i += 1) {
+          list.push([i * Math.ceil(this.result.iterations / fitnesses.length),
+            parseFloat(fitnesses[i])]);
         }
       } else {
         list.push([0, 0]);
@@ -275,13 +332,13 @@ export default {
 
       this.diagrams.chartOptions = {
         title: '',
-        hAxis: { title: 'Iterations', viewWindow: { min: 0 } },
-        vAxis: { title: 'Temperature', viewWindow: { min: 0 } },
+        hAxis: { title: 'Generations', viewWindow: { min: 0 } },
+        vAxis: { title: 'Best Fitness', viewWindow: { min: 0 } },
         backgroundColor: { fill: 'transparent' },
       };
 
       if (!this.diagrams.chart) {
-        this.diagrams.chart = new GoogleCharts.api.visualization.AreaChart(document.getElementById('chart'));
+        this.diagrams.chart = new GoogleCharts.api.visualization.AreaChart(document.getElementById('chartGA'));
       }
 
       this.diagrams.chart.draw(this.diagrams.chartData, this.diagrams.chartOptions);
@@ -301,11 +358,11 @@ export default {
       element.innerHTML = this.diagrams.svg;
 
       const svgElement = element.getElementsByTagName('svg')[0];
-      svgElement.id = 'svg';
+      svgElement.id = 'svgGA';
       svgElement.style.width = '100%';
       svgElement.style.height = '100%';
 
-      const graphContainer = document.getElementById('graph');
+      const graphContainer = document.getElementById('graphGA');
       graphContainer.innerHTML = '';
       graphContainer.appendChild(element);
 
@@ -315,7 +372,7 @@ export default {
       }
 
       // eslint-disable-next-line
-      this.diagrams.panZoomTiger = svgPanZoom('#svg', {
+      this.diagrams.panZoomTiger = svgPanZoom('#svgGA', {
         // viewportSelector: '.svg-pan-zoom_viewport',
         panEnabled: true,
         controlIconsEnabled: true,
@@ -381,9 +438,11 @@ export default {
       const k = this.parameters.k;
       const fileContent = this.parameters.file;
       const maxLabel = this.parameters.maxLabel;
-      const temperature = this.parameters.temperature;
-      const coolingFactor = this.parameters.coolingFactor;
-      const maxIterations = this.parameters.maxIterations;
+      const populationsCount = this.parameters.populationsCount;
+      const populationSize = this.parameters.populationSize;
+      const mutationChance = this.parameters.mutationChance;
+      const elitesCount = this.parameters.elitesCount;
+      const maxGenerations = this.parameters.maxGenerations;
       const maxTime = this.parameters.maxTime;
 
       /* check parameters existance */
@@ -391,9 +450,11 @@ export default {
           k == null ||
           fileContent == null ||
           maxLabel == null ||
-          temperature == null ||
-          coolingFactor == null ||
-          maxIterations == null ||
+          populationsCount == null ||
+          populationSize == null ||
+          mutationChance == null ||
+          elitesCount == null ||
+          maxGenerations == null ||
           maxTime == null) {
         return 'Please provide all parameters!';
       }
@@ -402,9 +463,11 @@ export default {
       if (Number.isInteger(Number(h)) === false ||
           Number.isInteger(Number(k)) === false ||
           Number.isInteger(Number(maxLabel)) === false ||
-          isNaN(Number(temperature)) ||
-          isNaN(Number(coolingFactor)) ||
-          Number.isInteger(Number(maxIterations)) === false ||
+          Number.isInteger(Number(populationsCount)) === false ||
+          Number.isInteger(Number(populationSize)) === false ||
+          isNaN(Number(mutationChance)) ||
+          Number.isInteger(Number(elitesCount)) === false ||
+          Number.isInteger(Number(maxGenerations)) === false ||
           Number.isInteger(Number(maxTime)) === false) {
         return 'Please verify parameter types!';
       }
@@ -413,10 +476,13 @@ export default {
       if (h < 0 ||
           k < 0 ||
           maxLabel < 1 ||
-          temperature <= 0 ||
-          coolingFactor <= 0 ||
-          coolingFactor >= 1 ||
-          maxIterations < 1 ||
+          populationsCount < 1 ||
+          populationSize < 1 ||
+          mutationChance < 0 ||
+          mutationChance > 1 ||
+          elitesCount < 0 ||
+          elitesCount > populationSize ||
+          maxGenerations < 1 ||
           maxTime < 1 ||
           maxTime > this.MAX_RUNNING_TIME) {
         return 'Please double check parameter values!';
@@ -596,5 +662,25 @@ export default {
   }
   .green {
     color: #8BC34A;
+  }
+  .left {
+    text-align: left;
+    padding-left: 2vh;
+  }
+  .right {
+    text-align: right;
+    padding-right: 2vh;
+  }
+  .parameters {
+    font-size: large;
+    line-height: normal;
+
+    padding-top: 5%;
+    padding-bottom: 5%;
+
+    line-height: 150%;
+  }
+  .centering {
+    text-align: center;
   }
 </style>

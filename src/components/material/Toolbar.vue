@@ -42,6 +42,7 @@ export default {
     position: fixed;
     z-index: 10;
   }
+
   span {
     text-transform: none;
   }

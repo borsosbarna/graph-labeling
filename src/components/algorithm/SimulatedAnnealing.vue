@@ -3,15 +3,75 @@
 
     <md-tabs md-alignment="centered">
       <md-tab id="tab-general" md-label="Info">
-        <div class="md-headline"> {{ info.general }} </div>
+        <div class="md-headline">
+          Simulated Annealing <br/><br/>
+          Metaheuristic algorithm for solution approximation in large scale search spaces <br/>
+          inspired by the cooling process used in metallurgy
+        </div>
       </md-tab>
 
       <md-tab id="tab-parameters" md-label="Parameters">
-        <div class="md-headline"> {{ info.parameters }} </div>
+        <div class="md-layout parameters">
+          <div class="md-layout-item md-size-25 right">
+            <i>h</i> <br/>
+            <i>k</i> <br/>
+            max. label value <br/>
+            temperature <br/>
+            cooling factor <br/>
+            max. iterations <br/>
+            max. time
+          </div>
+
+          <div class="md-layout-item centering">
+            - min. difference between labels of adjacent vertexes - <br/>
+            - min. difference between labels of vertexes with common neighbors - <br/>
+            - the highest value of label that can be used - <br/>
+            - starting system temperature - <br/>
+            - temperature decrease rate (exponential) coefficient - <br/>
+            - maximum number of iterations - <br/>
+            - maximum allowed running time (in seconds) -
+          </div>
+
+          <div class="md-layout-item md-size-25 left">
+            values: { 0, 1, ... } <br/>
+            values: { 0, 1, ... }  <br/>
+            values: { 1, 2, ... } <br/>
+            values: ( 0, 2 ] <br/>
+            values: ( 0, 1 ) <br/>
+            values: { 1, 2, ... } <br/>
+            values: { 1, 2, ... }
+          </div>
+        </div>
       </md-tab>
 
-      <md-tab id="tab-input" md-label="Input">
-        <div class="md-headline"> {{ info.input }} </div>
+      <md-tab id="tab-input" md-label="Input File Format">
+        <div class="md-layout parameters">
+          <div class="md-layout-item md-size-50">
+            Template <br/> <br/>
+
+            &lt;vertex_count&gt; &lt;edge_count&gt; &lt;fixed_labels_count&gt; <br/>
+            &lt;vertex1&gt; &lt;vertex2&gt; <br/>
+            ............................... <br/>
+            &lt;vertex1&gt; &lt;label1&gt; <br/>
+            ............................... <br/>
+          </div>
+
+          <div class="md-layout-item left">
+            Example <br/> <br/>
+
+            3 3 1 <br/>
+            1 2 <br/>
+            1 3 <br/>
+            2 3 <br/>
+            1 1 <br/>
+          </div>
+
+          <div class="md-layout-item md-size-25 centering">
+            Result <br/><br/>
+
+            <img src="@/assets/K3.svg" title="" />
+          </div>
+        </div>
       </md-tab>
     </md-tabs>
 
@@ -69,7 +129,9 @@
 
       <div class="md-layout-item md-size-33 padded-vertically">
         <div id="chart"></div>
-        <div id="graph"></div>
+        <div id="graph">
+          <img v-if="!result.solution" src="@/assets/graph_logo.png" title="" />
+        </div>
       </div>
 
       <div class="md-layout-item md-size-33 padded">
@@ -89,8 +151,7 @@
           <br/><br/>
           <span class="bold">Iterations Done</span>
           <span v-if="result.iterations">
-            {{ result.iterations }}
-            ({{Math.round((result.iterations / parameters.maxIterations) * 100)}}%)
+            {{ result.iterations }} ({{result.iterationsPercentage}}%)
           </span>
           <br/><br/>
           <span class="bold">Final Temperature</span>
@@ -106,8 +167,8 @@
           <span class="bold">Number of Conflicting Vertexes</span>
           <span>{{ result.conflictingVertexes }}</span>
           <br/><br/>
-          <span class="bold">Chromatic Number</span>
-          <span v-if="result.chromaticNumber">&le; {{ result.chromaticNumber }}</span>
+          <span class="bold">Max. Label Value</span>
+          <span v-if="result.chromaticNumber">{{ result.chromaticNumber }}</span>
           <br/><br/>
           <span class="bold">Fitness</span>
           <span>{{ result.fitness }}</span>
@@ -125,23 +186,12 @@ import { GoogleCharts } from 'google-charts';
 
 const svgPanZoom = require('svg-pan-zoom');
 const Viz = require('viz.js');
+const config = require('../../../configfile');
 
 export default {
   name: 'SimulatedAnnealing',
   data() {
     return {
-      info: {
-        general: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-                 'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-                 'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-        parameters: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-                    'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-                    'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-        input: 'Lorem ipsum dolor sit amet, te ius mutat voluptatum, et doming volutpat ' +
-               'torquatos vix, et has legere tamquam probatus. Quo ea erat interpretaris, ' +
-               'nec modus tempor elaboraret in. Eu pri eros consul fastidii, unum facete no qui.',
-      },
-
       isRunning: false,
       MAX_RUNNING_TIME: 60,
 
@@ -159,6 +209,7 @@ export default {
       result: {
         time: null,
         iterations: null,
+        iterationsPercentage: null,
         temperature: null,
         solution: null,
         isCorrect: null,
@@ -226,7 +277,7 @@ export default {
         maxTime: parseInt(this.parameters.maxTime, 10),
       };
 
-      fetch('https://graph-labeling.herokuapp.com/api/sa', {
+      fetch(`${config.host}/api/sa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload) })
@@ -235,6 +286,9 @@ export default {
         .then((data) => {
           if (!data.errorMsg) {
             this.result = data;
+
+            this.result.iterationsPercentage =
+              Math.round((this.result.iterations / this.parameters.maxIterations) * 100);
 
             this.drawGraph();
           }
@@ -585,5 +639,25 @@ export default {
   }
   .green {
     color: #8BC34A;
+  }
+  .left {
+    text-align: left;
+    padding-left: 2vh;
+  }
+  .right {
+    text-align: right;
+    padding-right: 2vh;
+  }
+  .parameters {
+    font-size: large;
+    line-height: normal;
+
+    padding-top: 5%;
+    padding-bottom: 5%;
+
+    line-height: 150%;
+  }
+  .centering {
+    text-align: center;
   }
 </style>

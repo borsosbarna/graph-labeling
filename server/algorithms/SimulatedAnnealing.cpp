@@ -3,12 +3,12 @@
     INPUT
         argv[1] - h (min. difference between neighbors)
         argv[2] - k (min. difference between second order neighbors)
-        argv[3] - file
+        argv[3] - file path
         argv[4] - max. label value
         argv[5] - initial temperature
         argv[6] - cooling factor
         argv[7] - max. iterations
-        argv[8] - max. running time
+        argv[8] - max. running time (seconds)
 
     OUTPUT
         line 1: time elapsed
